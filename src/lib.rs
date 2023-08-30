@@ -1,4 +1,4 @@
-use std::io::{ self, Write };
+use std::{ io::{ self, Write }, error::Error };
 use crossterm::{
     cursor::{ MoveUp, MoveDown, EnableBlinking, Hide, Show },
     execute,
@@ -6,8 +6,19 @@ use crossterm::{
     event::{ KeyCode, KeyEvent, KeyEventKind, read, Event },
 };
 
+use crate::configs::Configuration;
+
+mod configs;
+
+#[derive(PartialEq, Clone, Copy)]
+pub enum Selection {
+    Yes,
+    No,
+}
+
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     let stdin = io::stdin();
+    execute!(io::stdout(), EnableBlinking)?;
 
     // Project name setup
     let mut project_name = String::new();
@@ -17,17 +28,76 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     stdin.read_line(&mut project_name)?;
 
     // Typescript setup
-    let mut selected_option = 1; // 1 for "No", 2 for "Yes"
-    let mut typescript_option = "No";
+    let mut typescript_selected_option = Selection::Yes;
+    print_selection(
+        &mut typescript_selected_option,
+        "Would you like to use TypeScript with this project? » "
+    )?;
 
+    // ESLint setup
+    let mut eslint_selected_option = Selection::Yes;
+    print_selection(
+        &mut eslint_selected_option,
+        "Would you like to use ESLint with this project? » "
+    )?;
+
+    // Tailwind CSS setup
+    let mut tailwindcss_selected_option = Selection::Yes;
+    print_selection(
+        &mut tailwindcss_selected_option,
+        "Would you like to use Tailwind CSS with this project? » "
+    )?;
+
+    // Src folder structure setup
+    let mut src_selected_option = Selection::No;
+    print_selection(
+        &mut src_selected_option,
+        "Would you like to use `src/` directory with this project? » "
+    )?;
+
+    // App router setup
+    let mut app_router_selected_option = Selection::Yes;
+    print_selection(&mut app_router_selected_option, "Use App Router (recommended)? » ")?;
+
+    // Import alias setup
+    let mut alias_customized_selected_option = Selection::No;
+    print_selection(
+        &mut alias_customized_selected_option,
+        "Would you like to customize the default import alias? » "
+    )?;
+
+    configs::generate_project_structure(
+        &(Configuration {
+            project_name,
+            is_typescript: typescript_selected_option,
+            is_eslint: eslint_selected_option,
+            is_tailwind: tailwindcss_selected_option,
+            is_src: src_selected_option,
+            is_app_router: app_router_selected_option,
+            is_customize_alias: alias_customized_selected_option,
+        })
+    );
+
+    Ok(())
+}
+
+fn print_gray_separator() -> Result<(), Box<dyn std::error::Error>> {
+    execute!(io::stdout(), SetForegroundColor(Color::DarkGrey), Print(" » "), ResetColor)?;
+    Ok(())
+}
+
+fn print_selection(
+    selected_option: &mut Selection,
+    print_string: &str
+) -> Result<(), Box<dyn Error>> {
+    let mut option = if *selected_option == Selection::Yes { "Yes" } else { "No" };
     loop {
         // Reprint the updated content
-        print!("Would you like to use TypeScript with this project? » {}", if selected_option == 1 {
-            format!("\x1B[4m{}\x1B[0m / {}", typescript_option, "Yes")
+        println!("{print_string} {}", if *selected_option == Selection::No {
+            format!("\x1B[4m{}\x1B[0m / {}", option, "Yes")
         } else {
-            format!("{} / \x1B[4m{}\x1B[0m", "No", typescript_option)
+            format!("{} / \x1B[4m{}\x1B[0m", "No", option)
         });
-        println!();
 
         execute!(io::stdout(), MoveUp(1), Hide)?;
         match read()? {
@@ -39,12 +109,12 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                                 break;
                             }
                             KeyCode::Left => {
-                                selected_option = 1;
-                                typescript_option = "No";
+                                *selected_option = Selection::No;
+                                option = "No";
                             }
                             KeyCode::Right => {
-                                selected_option = 2;
-                                typescript_option = "Yes";
+                                *selected_option = Selection::Yes;
+                                option = "Yes";
                             }
                             _ => (),
                         }
@@ -54,18 +124,5 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     execute!(io::stdout(), MoveDown(1), Show)?;
-    println!("HALOO");
-
-    Ok(())
-}
-
-fn print_gray_separator() -> Result<(), Box<dyn std::error::Error>> {
-    execute!(
-        io::stdout(),
-        SetForegroundColor(Color::DarkGrey),
-        Print(" >> "),
-        ResetColor,
-        EnableBlinking
-    )?;
     Ok(())
 }
