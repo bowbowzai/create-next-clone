@@ -24,7 +24,9 @@ pub fn generate_project_structure(configuration: &Configuration) {
             ..
         } => {
             // this is default project structure
-            default::generate_project_structure(&configuration);
+            if let Err(err) = default::generate_project_structure(&configuration) {
+                eprint!("Create default config project structure failed: {}", err);
+            }
         }
         _ => (),
     }

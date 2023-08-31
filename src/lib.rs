@@ -1,4 +1,4 @@
-use std::{ io::{ self, Write }, error::Error, fmt::format };
+use std::{ io::{ self, Write }, error::Error };
 use crossterm::{
     cursor::{ MoveUp, MoveDown, EnableBlinking, Hide, Show },
     execute,
