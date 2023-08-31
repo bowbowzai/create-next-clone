@@ -1,4 +1,4 @@
-use std::{ io::{ self, Write }, error::Error };
+use std::{ io::{ self, Write }, error::Error, fmt::format };
 use crossterm::{
     cursor::{ MoveUp, MoveDown, EnableBlinking, Hide, Show },
     execute,
@@ -21,8 +21,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     execute!(io::stdout(), EnableBlinking)?;
 
     // Project name setup
-    let mut project_name = String::new();
-    print!("What is your project named?");
+    let mut project_name = String::from("my-app");
+    print!("What is your project named? (default: my-app)");
     print_gray_separator()?;
     io::stdout().flush()?;
     stdin.read_line(&mut project_name)?;
@@ -68,7 +68,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     configs::generate_project_structure(
         &(Configuration {
-            project_name,
+            project_name: &project_name,
             is_typescript: typescript_selected_option,
             is_eslint: eslint_selected_option,
             is_tailwind: tailwindcss_selected_option,
@@ -77,6 +77,35 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             is_customize_alias: alias_customized_selected_option,
         })
     );
+
+    execute!(
+        io::stdout(),
+        SetForegroundColor(Color::Green),
+        Print("Project Created! \n"),
+        ResetColor
+    )?;
+
+    let display_cd_instruction = format!("RUN cd {}", &project_name);
+    execute!(
+        io::stdout(),
+        SetForegroundColor(Color::Green),
+        Print(display_cd_instruction),
+        ResetColor
+    )?;
+
+    execute!(
+        io::stdout(),
+        SetForegroundColor(Color::Green),
+        Print("RUN npm install \n"),
+        ResetColor
+    )?;
+
+    execute!(
+        io::stdout(),
+        SetForegroundColor(Color::Green),
+        Print("RUN npm run dev \n"),
+        ResetColor
+    )?;
 
     Ok(())
 }

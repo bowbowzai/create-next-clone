@@ -2,8 +2,8 @@ use crate::Selection;
 
 pub mod default;
 
-pub struct Configuration {
-    pub project_name: String,
+pub struct Configuration<'a> {
+    pub project_name: &'a String,
     pub is_typescript: Selection,
     pub is_eslint: Selection,
     pub is_tailwind: Selection,
