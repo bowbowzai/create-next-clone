@@ -11,8 +11,7 @@ Ensure you have Rust and Cargo. If you don't have Rust installed, you can use `r
 
 2. **Clone the Repository:**
 Clone the create-next-clone repository and navigate to the project directory using the following commands:
-`git clone https://github.com/bowbowzai/create-next-clone.git`
-cd create-next-clone
+`git clone https://github.com/bowbowzai/create-next-clone.git` and `cd create-next-clone`
 
 3. **Install Dependencies and Build:**
 Install all the project dependencies and build the project using the cargo command:
